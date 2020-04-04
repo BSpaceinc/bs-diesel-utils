@@ -1,3 +1,5 @@
+pub use bs_diesel_utils_codegen::BSDieselEnum;
+
 pub use bigdecimal::BigDecimal;
 pub use diesel;
 
