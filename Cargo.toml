@@ -1,5 +1,17 @@
-[workspace]
-members = [
-  "./bs-diesel-utils",
-  "./bs-diesel-utils-codegen"
-]
+[package]
+name = "bs-diesel-utils"
+version = "0.1.0"
+authors = ["Flux Xu <fluxxu@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+bs-diesel-utils-codegen = { path = "./crates/bs-diesel-utils-codegen" }
+
+diesel = { version = "1.4.3", features = ["postgres", "chrono", "32-column-tables", "serde_json", "uuid", "r2d2", "numeric"] }
+bigdecimal = "0.1.0"
+dotenv = "0.15.0"
+futures = { version = "0.3.4", features = ["compat"] }
+thiserror = "1.0.11"
+tokio = { version = "0.2.13", features = ["blocking"] }
