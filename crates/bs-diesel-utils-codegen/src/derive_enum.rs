@@ -93,6 +93,17 @@ pub fn derive_enum(input: proc_macro::TokenStream) -> TokenStream {
       }
     }
 
+    impl<'a> diesel::expression::AsExpression<diesel::sql_types::Integer> for &'a #ident {
+      type Expression = <i32 as diesel::expression::AsExpression<diesel::sql_types::Integer>>::Expression;
+
+      fn as_expression(self) -> Self::Expression {
+        let discriminant = match *self {
+          #(#to_sql_arms,)*
+        };
+        <i32 as diesel::expression::AsExpression<diesel::sql_types::Integer>>::as_expression(discriminant)
+      }
+    }
+
     impl<__ST, __DB> diesel::deserialize::FromSqlRow<__ST, __DB> for #ident
     where
         __DB: diesel::backend::Backend,
