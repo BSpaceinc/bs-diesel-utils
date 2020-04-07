@@ -10,7 +10,7 @@ pub mod executor;
 pub mod result;
 
 pub use self::executor::{Executor, ExecutorRef};
-pub use self::result::DbError;
+pub use self::result::{DbError, DieselErrorExt};
 pub use self::types::*;
 
 use environment::Environment;
