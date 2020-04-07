@@ -13,3 +13,30 @@ pub enum DbError {
 }
 
 pub type Result<T, E = DbError> = std::result::Result<T, E>;
+
+pub trait DieselErrorExt {
+  fn is_unique_violation(&self, constraint_name: &str) -> bool;
+  fn is_foreign_key_violation(&self, constraint_name: &str) -> bool;
+}
+
+impl DieselErrorExt for diesel::result::Error {
+  fn is_unique_violation(&self, constraint_name: &str) -> bool {
+    use diesel::result::{Error, DatabaseErrorKind};
+    match *self {
+      Error::DatabaseError(DatabaseErrorKind::UniqueViolation, ref info) => {
+        info.constraint_name() == Some(constraint_name)
+      },
+      _ => false,
+    }
+  }
+
+  fn is_foreign_key_violation(&self, constraint_name: &str) -> bool {
+    use diesel::result::{Error, DatabaseErrorKind};
+    match *self {
+      Error::DatabaseError(DatabaseErrorKind::ForeignKeyViolation, ref info) => {
+        info.constraint_name() == Some(constraint_name)
+      },
+      _ => false,
+    }
+  }
+}
