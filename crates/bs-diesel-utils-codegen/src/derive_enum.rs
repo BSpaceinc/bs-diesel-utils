@@ -93,6 +93,14 @@ pub fn derive_enum(input: proc_macro::TokenStream) -> TokenStream {
       }
     }
 
+    impl diesel::expression::AsExpression<diesel::sql_types::Nullable<diesel::sql_types::Integer>> for #ident {
+      type Expression = <i32 as diesel::expression::AsExpression<diesel::sql_types::Nullable<diesel::sql_types::Integer>>>::Expression;
+
+      fn as_expression(self) -> Self::Expression {
+        <i32 as diesel::expression::AsExpression<diesel::sql_types::Nullable<diesel::sql_types::Integer>>>::as_expression(self as i32)
+      }
+    }
+
     impl<'a> diesel::expression::AsExpression<diesel::sql_types::Integer> for &'a #ident {
       type Expression = <i32 as diesel::expression::AsExpression<diesel::sql_types::Integer>>::Expression;
 
@@ -101,6 +109,17 @@ pub fn derive_enum(input: proc_macro::TokenStream) -> TokenStream {
           #(#to_sql_arms,)*
         };
         <i32 as diesel::expression::AsExpression<diesel::sql_types::Integer>>::as_expression(discriminant)
+      }
+    }
+
+    impl<'a> diesel::expression::AsExpression<diesel::sql_types::Nullable<diesel::sql_types::Integer>> for &'a #ident {
+      type Expression = <i32 as diesel::expression::AsExpression<diesel::sql_types::Nullable<diesel::sql_types::Integer>>>::Expression;
+
+      fn as_expression(self) -> Self::Expression {
+        let discriminant = match *self {
+          #(#to_sql_arms,)*
+        };
+        <i32 as diesel::expression::AsExpression<diesel::sql_types::Nullable<diesel::sql_types::Integer>>>::as_expression(discriminant)
       }
     }
 
