@@ -7,6 +7,7 @@ mod environment;
 mod types;
 
 pub mod executor;
+pub mod lock;
 pub mod result;
 
 pub use self::executor::{Executor, ExecutorRef};
