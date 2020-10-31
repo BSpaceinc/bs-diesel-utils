@@ -1,3 +1,4 @@
+#[derive(Debug)]
 pub struct Environment(String);
 
 impl Environment {

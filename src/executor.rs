@@ -1,6 +1,7 @@
 use diesel;
 use std::future::Future;
 use std::sync::Arc;
+use std::fmt;
 use thiserror::Error;
 
 use crate::result::{DbError, Result};
@@ -9,6 +10,13 @@ use tokio::runtime::Handle;
 
 pub struct Executor {
   db_conn_pool: Pool,
+}
+
+impl fmt::Debug for Executor {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+      f.debug_struct("Executor")
+       .finish()
+  }
 }
 
 impl Executor {
