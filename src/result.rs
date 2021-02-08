@@ -6,8 +6,8 @@ pub enum DbError {
   Diesel(#[from] diesel::result::Error),
   #[error("r2d2 connection pool: {0}")]
   R2d2Pool(#[from] diesel::r2d2::PoolError),
-  #[error("no running async runtime: {0}")]
-  NoRuntime(#[from] tokio::runtime::TryCurrentError),
+  #[error("no running async runtime")]
+  NoRuntime,
   #[error("task failed to execute to completion: {0}")]
   Task(#[from] tokio::task::JoinError),
 }
@@ -21,21 +21,21 @@ pub trait DieselErrorExt {
 
 impl DieselErrorExt for diesel::result::Error {
   fn is_unique_violation(&self, constraint_name: &str) -> bool {
-    use diesel::result::{Error, DatabaseErrorKind};
+    use diesel::result::{DatabaseErrorKind, Error};
     match *self {
       Error::DatabaseError(DatabaseErrorKind::UniqueViolation, ref info) => {
         info.constraint_name() == Some(constraint_name)
-      },
+      }
       _ => false,
     }
   }
 
   fn is_foreign_key_violation(&self, constraint_name: &str) -> bool {
-    use diesel::result::{Error, DatabaseErrorKind};
+    use diesel::result::{DatabaseErrorKind, Error};
     match *self {
       Error::DatabaseError(DatabaseErrorKind::ForeignKeyViolation, ref info) => {
         info.constraint_name() == Some(constraint_name)
-      },
+      }
       _ => false,
     }
   }

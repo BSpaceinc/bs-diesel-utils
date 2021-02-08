@@ -1,7 +1,7 @@
 use diesel;
+use std::fmt;
 use std::future::Future;
 use std::sync::Arc;
-use std::fmt;
 use thiserror::Error;
 
 use crate::result::{DbError, Result};
@@ -14,8 +14,7 @@ pub struct Executor {
 
 impl fmt::Debug for Executor {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-      f.debug_struct("Executor")
-       .finish()
+    f.debug_struct("Executor").finish()
   }
 }
 
@@ -47,16 +46,14 @@ impl Executor {
   {
     let pool = self.db_conn_pool.clone();
     async move {
-      let handle = Handle::try_current().map_err(DbError::NoRuntime)?;
-      handle
-        .enter(move || {
-          tokio::task::spawn_blocking(move || -> Result<T, ExecutorError<E>> {
-            let conn = pool.get().map_err(DbError::R2d2Pool)?;
-            f(&conn).map_err(ExecutorError::Task)
-          })
-        })
-        .await
-        .map_err(DbError::Task)?
+      let handle = Handle::try_current().map_err(|_| DbError::NoRuntime)?;
+      handle.enter();
+      tokio::task::spawn_blocking(move || -> Result<T, ExecutorError<E>> {
+        let conn = pool.get().map_err(DbError::R2d2Pool)?;
+        f(&conn).map_err(ExecutorError::Task)
+      })
+      .await
+      .map_err(DbError::Task)?
     }
   }
 }
