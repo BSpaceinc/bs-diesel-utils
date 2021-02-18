@@ -1,7 +1,8 @@
+pub extern crate diesel;
+
 pub use bs_diesel_utils_codegen::BSDieselEnum;
 
 pub use bigdecimal::BigDecimal;
-pub use diesel;
 
 mod environment;
 mod types;

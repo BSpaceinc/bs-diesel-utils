@@ -26,3 +26,33 @@ where
     Ok(res)
   })
 }
+
+pub fn transaction_with_advisory_locks<ID, F, R, E>(
+  conn: &DbConn,
+  lock_ids: &[ID],
+  f: F,
+) -> Result<R, E>
+where
+  ID: AsAdvisoryLockID,
+  F: FnOnce() -> Result<R, E>,
+  E: From<diesel::result::Error>,
+{
+  conn.transaction(|| {
+    if !lock_ids.is_empty() {
+      let mut sql = "SELECT ".to_string();
+      for (idx, id) in lock_ids.into_iter().enumerate() {
+        if idx > 0 {
+          sql.push_str(",")
+        }
+        sql.push_str(&format!(
+          "pg_advisory_xact_lock({})",
+          id.as_advisory_lock_id()
+        ));
+      }
+      diesel::sql_query(sql).execute(conn)?;
+    }
+
+    let res = f()?;
+    Ok(res)
+  })
+}
