@@ -6,7 +6,6 @@ use thiserror::Error;
 
 use crate::result::{DbError, Result};
 use crate::types::{ConnectionManager, DbConn, Pool};
-use tokio::runtime::Handle;
 
 pub struct Executor {
   db_conn_pool: Pool,
@@ -46,8 +45,6 @@ impl Executor {
   {
     let pool = self.db_conn_pool.clone();
     async move {
-      let handle = Handle::try_current().map_err(|_| DbError::NoRuntime)?;
-      handle.enter();
       tokio::task::spawn_blocking(move || -> Result<T, ExecutorError<E>> {
         let conn = pool.get().map_err(DbError::R2d2Pool)?;
         f(&conn).map_err(ExecutorError::Task)
@@ -69,4 +66,18 @@ where
   Executor(#[from] DbError),
   #[error("{0}")]
   Task(E),
+}
+
+impl<E> ExecutorError<E> 
+where
+  E: std::fmt::Debug + std::fmt::Display,
+{
+  pub fn into_err<E2>(self) -> E2 
+  where E2: From<DbError> + From<E>
+  {
+    match self {
+      ExecutorError::Executor(err) => err.into(),
+      ExecutorError::Task(err) => err.into(),
+    }
+  }
 }
