@@ -81,3 +81,9 @@ where
     }
   }
 }
+
+impl From<Pool> for Executor {
+  fn from(db_conn_pool: Pool) -> Self {
+    Self { db_conn_pool }
+  }
+}
