@@ -61,7 +61,7 @@ pub fn derive_enum(input: proc_macro::TokenStream) -> TokenStream {
       DB: diesel::backend::Backend,
       i32: diesel::deserialize::FromSql<diesel::sql_types::Integer, DB>,
     {
-      fn from_sql(bytes: Option<&DB::RawValue>) -> diesel::deserialize::Result<Self> {
+      fn from_sql(bytes: DB::RawValue<'_>) -> diesel::deserialize::Result<Self>  {
         match i32::from_sql(bytes)? {
           #(#from_sql_arms,)*
           x => Err(format!(#err_fmt, x).into()),
@@ -74,10 +74,7 @@ pub fn derive_enum(input: proc_macro::TokenStream) -> TokenStream {
       DB: diesel::backend::Backend,
       i32: diesel::serialize::ToSql<diesel::sql_types::Integer, DB>,
     {
-      fn to_sql<W: std::io::Write>(
-        &self,
-        out: &mut diesel::serialize::Output<W, DB>,
-      ) -> diesel::serialize::Result {
+      fn to_sql<'b>(&'b self, out: &mut diesel::serialize::Output<'b, '_, DB>) -> diesel::serialize::Result{
         let discriminant = match *self {
           #(#to_sql_arms,)*
         };
@@ -85,63 +82,63 @@ pub fn derive_enum(input: proc_macro::TokenStream) -> TokenStream {
       }
     }
 
-    impl diesel::expression::AsExpression<diesel::sql_types::Integer> for #ident {
-      type Expression = <i32 as diesel::expression::AsExpression<diesel::sql_types::Integer>>::Expression;
-
-      fn as_expression(self) -> Self::Expression {
-        <i32 as diesel::expression::AsExpression<diesel::sql_types::Integer>>::as_expression(self as i32)
-      }
-    }
-
-    impl diesel::expression::AsExpression<diesel::sql_types::Nullable<diesel::sql_types::Integer>> for #ident {
-      type Expression = <i32 as diesel::expression::AsExpression<diesel::sql_types::Nullable<diesel::sql_types::Integer>>>::Expression;
-
-      fn as_expression(self) -> Self::Expression {
-        <i32 as diesel::expression::AsExpression<diesel::sql_types::Nullable<diesel::sql_types::Integer>>>::as_expression(self as i32)
-      }
-    }
-
-    impl<'a> diesel::expression::AsExpression<diesel::sql_types::Integer> for &'a #ident {
-      type Expression = <i32 as diesel::expression::AsExpression<diesel::sql_types::Integer>>::Expression;
-
-      fn as_expression(self) -> Self::Expression {
-        let discriminant = match *self {
-          #(#to_sql_arms,)*
-        };
-        <i32 as diesel::expression::AsExpression<diesel::sql_types::Integer>>::as_expression(discriminant)
-      }
-    }
-
-    impl<'a> diesel::expression::AsExpression<diesel::sql_types::Nullable<diesel::sql_types::Integer>> for &'a #ident {
-      type Expression = <i32 as diesel::expression::AsExpression<diesel::sql_types::Nullable<diesel::sql_types::Integer>>>::Expression;
-
-      fn as_expression(self) -> Self::Expression {
-        let discriminant = match *self {
-          #(#to_sql_arms,)*
-        };
-        <i32 as diesel::expression::AsExpression<diesel::sql_types::Nullable<diesel::sql_types::Integer>>>::as_expression(discriminant)
-      }
-    }
-
-    impl<__ST, __DB> diesel::deserialize::FromSqlRow<__ST, __DB> for #ident
-    where
-        __DB: diesel::backend::Backend,
-        Self: diesel::deserialize::FromSql<__ST, __DB>,
-    {
-        fn build_from_row<R: diesel::row::Row<__DB>>(row: &mut R) -> diesel::deserialize::Result<Self> {
-          diesel::deserialize::FromSql::<__ST, __DB>::from_sql(row.take())
-        }
-    }
-    impl<__ST, __DB> diesel::deserialize::Queryable<__ST, __DB> for #ident
-    where
-        __DB: diesel::backend::Backend,
-        Self: diesel::deserialize::FromSql<__ST, __DB>,
-    {
-        type Row = Self;
-        fn build(row: Self::Row) -> Self {
-            row
-        }
-    }
+    // impl diesel::expression::AsExpression<diesel::sql_types::Integer> for #ident {
+    //   type Expression = <i32 as diesel::expression::AsExpression<diesel::sql_types::Integer>>::Expression;
+    //
+    //   fn as_expression(self) -> Self::Expression {
+    //     <i32 as diesel::expression::AsExpression<diesel::sql_types::Integer>>::as_expression(self as i32)
+    //   }
+    // }
+    //
+    // impl diesel::expression::AsExpression<diesel::sql_types::Nullable<diesel::sql_types::Integer>> for #ident {
+    //   type Expression = <i32 as diesel::expression::AsExpression<diesel::sql_types::Nullable<diesel::sql_types::Integer>>>::Expression;
+    //
+    //   fn as_expression(self) -> Self::Expression {
+    //     <i32 as diesel::expression::AsExpression<diesel::sql_types::Nullable<diesel::sql_types::Integer>>>::as_expression(self as i32)
+    //   }
+    // }
+    //
+    // impl<'a> diesel::expression::AsExpression<diesel::sql_types::Integer> for &'a #ident {
+    //   type Expression = <i32 as diesel::expression::AsExpression<diesel::sql_types::Integer>>::Expression;
+    //
+    //   fn as_expression(self) -> Self::Expression {
+    //     let discriminant = match *self {
+    //       #(#to_sql_arms,)*
+    //     };
+    //     <i32 as diesel::expression::AsExpression<diesel::sql_types::Integer>>::as_expression(discriminant)
+    //   }
+    // }
+    //
+    // impl<'a> diesel::expression::AsExpression<diesel::sql_types::Nullable<diesel::sql_types::Integer>> for &'a #ident {
+    //   type Expression = <i32 as diesel::expression::AsExpression<diesel::sql_types::Nullable<diesel::sql_types::Integer>>>::Expression;
+    //
+    //   fn as_expression(self) -> Self::Expression {
+    //     let discriminant = match *self {
+    //       #(#to_sql_arms,)*
+    //     };
+    //     <i32 as diesel::expression::AsExpression<diesel::sql_types::Nullable<diesel::sql_types::Integer>>>::as_expression(discriminant)
+    //   }
+    // }
+    //
+    // impl<__ST, __DB> diesel::deserialize::FromSqlRow<__ST, __DB> for #ident
+    // where
+    //     __DB: diesel::backend::Backend,
+    //     Self: diesel::deserialize::FromSql<__ST, __DB>,
+    // {
+    //     fn build_from_row<R: diesel::row::Row<__DB>>(row: &mut R) -> diesel::deserialize::Result<Self> {
+    //       diesel::deserialize::FromSql::<__ST, __DB>::from_sql(row.take())
+    //     }
+    // }
+    // impl<__ST, __DB> diesel::deserialize::Queryable<__ST, __DB> for #ident
+    // where
+    //     __DB: diesel::backend::Backend,
+    //     Self: diesel::deserialize::FromSql<__ST, __DB>,
+    // {
+    //     type Row = Self;
+    //     fn build(row: Self::Row) -> Self {
+    //         row
+    //     }
+    // }
   }
 }
 
@@ -192,7 +189,7 @@ impl<'a> VariantInfo<'a> {
       discriminant,
     } = self;
     quote! {
-      #enum_ident::#ident => #discriminant
+      #enum_ident::#ident => & #discriminant
     }
   }
 }

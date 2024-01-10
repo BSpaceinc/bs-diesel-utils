@@ -9,8 +9,8 @@ edition = "2018"
 [dependencies]
 bs-diesel-utils-codegen = { path = "./crates/bs-diesel-utils-codegen" }
 
-diesel = { version = "1.4.3", features = ["postgres", "chrono", "32-column-tables", "serde_json", "uuid", "r2d2", "numeric"] }
-bigdecimal = "0.1.0"
+diesel = { version = "2.1.4", features = ["postgres", "chrono", "32-column-tables", "serde_json", "r2d2", "numeric"] }
+bigdecimal = "0.4.2"
 dotenv = "0.15.0"
 futures = { version = "0.3.5", features = ["compat"] }
 thiserror = "1.0.11"

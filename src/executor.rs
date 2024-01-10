@@ -39,15 +39,15 @@ impl Executor {
 
   pub fn exec<F, T, E>(&self, f: F) -> impl Future<Output = Result<T, ExecutorError<E>>>
   where
-    F: FnOnce(&DbConn) -> Result<T, E> + Send + 'static,
+    F: FnOnce(&mut DbConn) -> Result<T, E> + Send + 'static,
     T: Send + 'static,
     E: Send + std::fmt::Debug + std::fmt::Display + 'static,
   {
     let pool = self.db_conn_pool.clone();
     async move {
       tokio::task::spawn_blocking(move || -> Result<T, ExecutorError<E>> {
-        let conn = pool.get().map_err(DbError::R2d2Pool)?;
-        f(&conn).map_err(ExecutorError::Task)
+        let mut conn = pool.get().map_err(DbError::R2d2Pool)?;
+        f(&mut conn).map_err(ExecutorError::Task)
       })
       .await
       .map_err(DbError::Task)?

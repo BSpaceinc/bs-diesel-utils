@@ -63,7 +63,7 @@ pub fn connect_env() -> DbConn {
 
 /// Starts test transaction
 ///
-pub fn start_test_transaction(conn: DbConn) -> DbConn {
+pub fn start_test_transaction(mut conn: DbConn) -> DbConn {
   use diesel::prelude::*;
   conn
     .begin_test_transaction()
